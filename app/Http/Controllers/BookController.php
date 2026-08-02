@@ -12,9 +12,29 @@ class BookController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $books = Book::with('author')->paginate(10);
+        $query = Book::with('author');
+
+        //search functionality
+        if($request->has('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                ->orWhere('isbn', 'like', '%' . $search . '%')
+                ->orWhereHas('author', function($authorQuery) use ($search) {
+                    $authorQuery->where('name', 'like', '%' . $search . '%');
+                });
+            });
+        }
+
+        if($request->has('genre')){
+            $query->where('genre', $request->genre);
+        }
+
+        $books = $query->paginate(10);
+
 
         return BookResource::collection($books);
     }
@@ -52,16 +72,22 @@ class BookController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(StoreBookRequest $request, Book $book)
     {
-        //
+        $book->update($request->validated());
+
+        $book->load('author');
+
+        return new BookResource($book);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Book $book)
     {
-        //
+        $book->delete();
+
+        return response()->json(['message' => 'Book deleted successfully', 'status'=>true], 200);
     }
 }
