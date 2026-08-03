@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreBookRequest;
+use App\Http\Requests\UpdateBookRequest;
 use App\Http\Resources\BookResource;
 use App\Models\Book;
 use Illuminate\Http\Request;
@@ -72,7 +73,7 @@ class BookController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(StoreBookRequest $request, Book $book)
+    public function update(UpdateBookRequest $request, Book $book)
     {
         $book->update($request->validated());
 
